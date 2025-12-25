@@ -98,10 +98,13 @@ face-emotion-detection/
 ## 👨‍💻 Developer Information
 
 **Developed by:** Tejas Gholap
+
 🔗 LinkedIn: [https://www.linkedin.com/in/tejas-gholap](https://www.linkedin.com/in/tejas-gholap)
+
 💻 GitHub: [https://github.com/tejasgholap45](https://github.com/tejasgholap45)
 
 **Guided By:** Pratik Ramteke Sir
+
 **Powered By:** Cloudblitz | Powered by Greamio
 
 ---
