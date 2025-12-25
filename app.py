@@ -1,47 +1,82 @@
 import streamlit as st
-from ultralytics import YOLO
 import cv2
+import numpy as np
+from tensorflow.keras.models import load_model
+from PIL import Image
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Live Face Emotion Detection",
+    page_title="Face Emotion Detection",
     page_icon="😊",
     layout="wide"
 )
 
 # ---------------- TITLE ----------------
-st.title("😊 Live Face Emotion Detection using YOLOv11")
+st.title("😊 Face Emotion Detection using TensorFlow")
 st.write(
-    "Real-time **face emotion detection** using a custom-trained "
-    "**YOLOv11 model** with Streamlit."
+    "A professional **Streamlit web application** for detecting "
+    "**human emotions from facial expressions** using a CNN model."
 )
 
 # ---------------- LOAD MODEL ----------------
 @st.cache_resource
-def load_model():
-    return YOLO("best.pt")   # your trained emotion model
+def load_emotion_model():
+    return load_model("model_file.h5")
 
-model = load_model()
+model = load_emotion_model()
 
-# ---------------- WEBCAM CONTROL ----------------
-run = st.checkbox("▶️ Start Live Webcam")
-frame_window = st.image([])
-cap = cv2.VideoCapture(0)
+emotion_labels = [
+    "Angry", "Disgust", "Fear",
+    "Happy", "Neutral", "Sad", "Surprise"
+]
 
-# ---------------- LIVE DETECTION ----------------
-while run:
-    ret, frame = cap.read()
-    if not ret:
-        st.error("❌ Unable to access webcam")
-        break
+face_cascade = cv2.CascadeClassifier(
+    "haarcascade_frontalface_default.xml"
+)
 
-    results = model(frame, conf=0.25)
-    annotated_frame = results[0].plot()
-    annotated_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+# ---------------- IMAGE UPLOAD ----------------
+uploaded_file = st.file_uploader(
+    "📤 Upload a face image",
+    type=["jpg", "jpeg", "png"]
+)
 
-    frame_window.image(annotated_frame)
+if uploaded_file:
+    image = Image.open(uploaded_file).convert("RGB")
+    img_array = np.array(image)
 
-cap.release()
+    st.subheader("Uploaded Image")
+    st.image(image, use_column_width=True)
+
+    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+    faces = face_cascade.detectMultiScale(
+        gray, scaleFactor=1.3, minNeighbors=5
+    )
+
+    if len(faces) == 0:
+        st.warning("⚠️ No face detected in the image.")
+    else:
+        for (x, y, w, h) in faces:
+            roi = gray[y:y+h, x:x+w]
+            roi = cv2.resize(roi, (48, 48))
+            roi = roi / 255.0
+            roi = roi.reshape(1, 48, 48, 1)
+
+            preds = model.predict(roi, verbose=0)
+            emotion = emotion_labels[np.argmax(preds)]
+
+            cv2.rectangle(
+                img_array, (x, y), (x+w, y+h), (0, 255, 0), 2
+            )
+            cv2.putText(
+                img_array, emotion, (x, y-10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2
+            )
+
+        st.subheader("Detection Result")
+        st.image(
+            cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB),
+            use_column_width=True
+        )
 
 # ---------------- FOOTER (ONLY ONCE) ----------------
 st.markdown("---")
@@ -54,6 +89,6 @@ st.markdown(
     **Guided By:** Pratik Ramteke Sir  
     **Powered By:** Cloudblitz | Powered by Greamio  
 
-    *YOLOv11-based Live Face Emotion Detection | Streamlit Web App*
+    *TensorFlow-based Face Emotion Detection | Streamlit Web App*
     """
 )
