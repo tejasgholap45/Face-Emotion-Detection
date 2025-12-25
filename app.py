@@ -3,6 +3,16 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
 from PIL import Image
+import gdown
+import os
+
+# ---------------- auto download ----------------
+MODEL_URL = "https://drive.google.com/uc?id=18oDZKqtFDJ9j2pItGEYZG415OiA21Ck4"
+MODEL_PATH = "model_file.h5"
+
+if not os.path.exists(MODEL_PATH):
+    gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
